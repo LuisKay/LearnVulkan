@@ -20,7 +20,7 @@ class VKColorApp : public VKBaseApp
         void createImageViews();
         void createRenderPass();
         void createDescriptorSetLayout();
-        void createGraphicsPipeline();
+        virtual void createGraphicsPipeline();
         void createFramebuffers();
         void createCommandPool();
         void createCommandBuffer();
@@ -33,7 +33,7 @@ class VKColorApp : public VKBaseApp
         bool checkValidationLayerSupport();
 
         VkShaderModule createShaderModule(const std::vector<uint8_t> &code);
-        void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+        virtual void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
         void recreateSwapChain();
         void onOrientationChange();
         uint32_t findMemoryType(uint32_t typeFilter,
@@ -45,7 +45,7 @@ class VKColorApp : public VKBaseApp
         void updateUniformBuffer(uint32_t currentImage);
         void createDescriptorPool();
         void createDescriptorSets();
-        void createMeshBuffers();
+        virtual void createMeshBuffers();
         void destroyMeshBuffers();
         void establishDisplaySizeIdentity();
 

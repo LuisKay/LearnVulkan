@@ -25,6 +25,8 @@
 
 #include "000_vk_triangle_app.h"
 #include "001_vk_color_app.h"
+#include "002_vk_point_app.h"
+#include "003_vk_line_app.h"
 
 #include "utils.h"
 
@@ -157,7 +159,9 @@ VKBaseApp* CreateVKApp()
 {
     VKBaseApp *app;
 
-    app = new VKColorApp();
     // app = new VKTriangleApp();
+    // app = new VKColorApp();
+    // app = new VKPointApp();
+    app = new VKLineApp();
     return app;
 }

@@ -33,7 +33,9 @@ add_definitions(-DVK_USE_PLATFORM_ANDROID_KHR=1)
 
 add_library(${PROJECT_NAME} SHARED vk_main.cpp utils.cpp
     000_vk_triangle_app.cpp
-    001_vk_color_app.cpp)
+    001_vk_color_app.cpp
+    002_vk_point_app.cpp
+    003_vk_line_app.cpp)
 
 # Import the CMakeLists.txt for the glm library
 add_subdirectory(${THIRD_PARTY_DIR}/glm ${CMAKE_CURRENT_BINARY_DIR}/glm)
