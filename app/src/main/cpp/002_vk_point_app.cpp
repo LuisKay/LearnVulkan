@@ -1,11 +1,11 @@
 #include "002_vk_point_app.h"
 
-void VKPointApp::createMeshBuffers()
+void VKPointApp::fillVertexData()
 {
     // vertex data
     // right-handed system, with Y axis downward.
     // X axis right, Y axis downward, Z axis backward. 
-    std::vector<Vertex> vertices = {
+    vertices = {
         {
             {-0.5, -0.5, 0.0}, {0.67, 0.1, 0.2}
         },
@@ -21,132 +21,7 @@ void VKPointApp::createMeshBuffers()
     };
 
     // indices data
-    std::vector<uint16_t> indices = {0, 1, 2, 3};
-    indicesCount = (uint32_t)indices.size();
-
-    // temp vertex buffer
-    VertexBuffer tempVertexBuffer;
-    // temp index buffer
-    IndexBuffer tempIndexBuffer;
-
-    void *dataPtr = nullptr;
-    VkMemoryRequirements memReqInfo;
-    VkMemoryAllocateInfo memAllocInfo;
-    ZeroVulkanStruct(memAllocInfo, VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO);
-
-    // create temp vertex buffer
-    VkBufferCreateInfo vertexBufferInfo;
-    ZeroVulkanStruct(vertexBufferInfo, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO);
-    vertexBufferInfo.size = vertices.size() * sizeof(Vertex);
-    vertexBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    VK_CHECK(vkCreateBuffer(device, &vertexBufferInfo, VULKAN_CPU_ALLOCATOR, &tempVertexBuffer.buffer));
-
-    // get vertex buffer memory requirements
-    vkGetBufferMemoryRequirements(device, tempVertexBuffer.buffer, &memReqInfo);
-
-    // allocate temp vertex buffer memory
-    VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    memAllocInfo.allocationSize = memReqInfo.size;
-    memAllocInfo.memoryTypeIndex = findMemoryType(memReqInfo.memoryTypeBits, properties);
-    VK_CHECK(vkAllocateMemory(device, &memAllocInfo, VULKAN_CPU_ALLOCATOR, &tempVertexBuffer.memory));
-    // attach vertex memory to temp vertex buffer
-    VK_CHECK(vkBindBufferMemory(device, tempVertexBuffer.buffer, tempVertexBuffer.memory, 0));
-    // mapping dataPtr pointer (vertices) to temp vertex buffer memory
-    VK_CHECK(vkMapMemory(device, tempVertexBuffer.memory, 0, memAllocInfo.allocationSize, 0, &dataPtr));
-    std::memcpy(dataPtr, vertices.data(), vertexBufferInfo.size);
-    vkUnmapMemory(device, tempVertexBuffer.memory);
-
-    // local device vertex buffer
-    vertexBufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-    VK_CHECK(vkCreateBuffer(device, &vertexBufferInfo, VULKAN_CPU_ALLOCATOR, &vertexBuffer.buffer));
-    vkGetBufferMemoryRequirements(device, vertexBuffer.buffer, &memReqInfo);
-    properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    memAllocInfo.allocationSize  = memReqInfo.size;
-    memAllocInfo.memoryTypeIndex = findMemoryType(memReqInfo.memoryTypeBits, properties);
-    VK_CHECK(vkAllocateMemory(device, &memAllocInfo, VULKAN_CPU_ALLOCATOR, &vertexBuffer.memory));
-    // attach vertex memory to vertex buffer
-    VK_CHECK(vkBindBufferMemory(device, vertexBuffer.buffer, vertexBuffer.memory, 0));
-
-    // index buffer
-    VkBufferCreateInfo indexBufferInfo;
-    ZeroVulkanStruct(indexBufferInfo, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO);
-    indexBufferInfo.size  = indicesCount * sizeof(uint16_t);
-    indexBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    VK_CHECK(vkCreateBuffer(device, &indexBufferInfo, VULKAN_CPU_ALLOCATOR, &tempIndexBuffer.buffer));
-
-    // get index buffer memory requirements
-    vkGetBufferMemoryRequirements(device, tempIndexBuffer.buffer, &memReqInfo);
-    // allocate temp index buffer memory
-    properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    memAllocInfo.allocationSize = memReqInfo.size;
-    memAllocInfo.memoryTypeIndex = findMemoryType(memReqInfo.memoryTypeBits, properties);
-    VK_CHECK(vkAllocateMemory(device, &memAllocInfo, VULKAN_CPU_ALLOCATOR, &tempIndexBuffer.memory));
-    // attach index buffer memory to temp index buffer
-    VK_CHECK(vkBindBufferMemory(device, tempIndexBuffer.buffer, tempIndexBuffer.memory, 0));
-    // mapping dataPtr pointer (indices) to temp index buffer memory
-    VK_CHECK(vkMapMemory(device, tempIndexBuffer.memory, 0, memAllocInfo.allocationSize, 0, &dataPtr));
-    std::memcpy(dataPtr, indices.data(), indexBufferInfo.size);
-    vkUnmapMemory(device, tempIndexBuffer.memory);
-
-    // local device index buffer
-    indexBufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-    VK_CHECK(vkCreateBuffer(device, &indexBufferInfo, VULKAN_CPU_ALLOCATOR, &indicesBuffer.buffer));
-    vkGetBufferMemoryRequirements(device, indicesBuffer.buffer, &memReqInfo);
-    properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    memAllocInfo.allocationSize  = memReqInfo.size;
-    memAllocInfo.memoryTypeIndex = findMemoryType(memReqInfo.memoryTypeBits, properties);
-    VK_CHECK(vkAllocateMemory(device, &memAllocInfo, VULKAN_CPU_ALLOCATOR, &indicesBuffer.memory));
-    // attach index buffer memory to index buffer
-    VK_CHECK(vkBindBufferMemory(device, indicesBuffer.buffer, indicesBuffer.memory, 0));
-    
-    VkCommandBuffer xferCmdBuffer;
-    VkCommandBufferAllocateInfo xferCmdBufferInfo;
-    ZeroVulkanStruct(xferCmdBufferInfo, VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO);
-    // better to use transfer queue for data transfer op
-    // here graphics queue is used for simplification.
-    // it seems error is here, driver related.
-    xferCmdBufferInfo.commandPool = commandPool;
-    xferCmdBufferInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    xferCmdBufferInfo.commandBufferCount = 1;
-    VK_CHECK(vkAllocateCommandBuffers(device, &xferCmdBufferInfo, &xferCmdBuffer));
-
-    // Begin recording commands
-    VkCommandBufferBeginInfo cmdBufferBeginInfo;
-    ZeroVulkanStruct(cmdBufferBeginInfo, VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO);
-    VK_CHECK(vkBeginCommandBuffer(xferCmdBuffer, &cmdBufferBeginInfo));
-
-    VkBufferCopy copyRegion = {};
-    copyRegion.size = vertices.size() * sizeof(Vertex);
-    vkCmdCopyBuffer(xferCmdBuffer, tempVertexBuffer.buffer, vertexBuffer.buffer, 1, &copyRegion);
-
-    copyRegion.size = indices.size() * sizeof(uint16_t);
-    vkCmdCopyBuffer(xferCmdBuffer, tempIndexBuffer.buffer, indicesBuffer.buffer, 1, &copyRegion);
-
-    // End recording commands
-    VK_CHECK(vkEndCommandBuffer(xferCmdBuffer));
-
-    // submit commands, and wait...
-    VkSubmitInfo submitInfo;
-    ZeroVulkanStruct(submitInfo, VK_STRUCTURE_TYPE_SUBMIT_INFO);
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers    = &xferCmdBuffer;
-
-    VkFenceCreateInfo fenceInfo;
-    ZeroVulkanStruct(fenceInfo, VK_STRUCTURE_TYPE_FENCE_CREATE_INFO);
-    fenceInfo.flags = 0;
-
-    VkFence fence = VK_NULL_HANDLE;
-    VK_CHECK(vkCreateFence(device, &fenceInfo, VULKAN_CPU_ALLOCATOR, &fence));
-    VK_CHECK(vkQueueSubmit(graphicsQueue, 1, &submitInfo, fence));
-    VK_CHECK(vkWaitForFences(device, 1, &fence, VK_TRUE, MAX_int64));
-
-    vkDestroyFence(device, fence, VULKAN_CPU_ALLOCATOR);
-    vkFreeCommandBuffers(device, commandPool, 1, &xferCmdBuffer);
-
-    vkDestroyBuffer(device, tempVertexBuffer.buffer, VULKAN_CPU_ALLOCATOR);
-    vkFreeMemory(device, tempVertexBuffer.memory, VULKAN_CPU_ALLOCATOR);
-    vkDestroyBuffer(device, tempIndexBuffer.buffer, VULKAN_CPU_ALLOCATOR);
-    vkFreeMemory(device, tempIndexBuffer.memory, VULKAN_CPU_ALLOCATOR);
+    indices = {0, 1, 2, 3};
 }
 
 void VKPointApp::createGraphicsPipeline()
@@ -321,6 +196,7 @@ void VKPointApp::initVulkan()
     createGraphicsPipeline();
     createFramebuffers();
     createCommandPool();
+    fillVertexData();
     createMeshBuffers();
     createCommandBuffer();
     createSyncObjects();

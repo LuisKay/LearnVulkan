@@ -13,6 +13,6 @@ class VKPointApp : public VKColorApp
         virtual void cleanupSwapChain() override;
         virtual void reset(ANativeWindow *newWindow, AAssetManager *newManager) override;
     protected:
-        virtual void createMeshBuffers() override;
         virtual void createGraphicsPipeline() override;
+        virtual void fillVertexData() override;
 };

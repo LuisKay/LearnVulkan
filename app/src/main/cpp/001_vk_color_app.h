@@ -45,7 +45,8 @@ class VKColorApp : public VKBaseApp
         void updateUniformBuffer(uint32_t currentImage);
         void createDescriptorPool();
         void createDescriptorSets();
-        virtual void createMeshBuffers();
+        void createMeshBuffers();
+        virtual void fillVertexData();
         void destroyMeshBuffers();
         void establishDisplaySizeIdentity();
 
@@ -62,6 +63,8 @@ class VKColorApp : public VKBaseApp
         VkPipelineLayout pipelineLayout;
         VkPipeline graphicsPipeline;
 
+        std::vector<Vertex> vertices;
+        std::vector<uint16_t> indices;
         VertexBuffer vertexBuffer;
         IndexBuffer indicesBuffer;
 

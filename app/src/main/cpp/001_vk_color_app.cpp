@@ -781,12 +781,12 @@ void VKColorApp::createDescriptorSets()
     }
 }
 
-void VKColorApp::createMeshBuffers()
+void VKColorApp::fillVertexData()
 {
     // vertex data
     // right-handed system, with Y axis downward.
     // X axis right, Y axis downward, Z axis backward. 
-    std::vector<Vertex> vertices = {
+    vertices = {
         {
             {-1.0, -1.0, 0.0}, {0.67, 0.1, 0.2}
         },
@@ -802,7 +802,11 @@ void VKColorApp::createMeshBuffers()
     };
 
     // indices data
-    std::vector<uint16_t> indices = {0, 1, 2, 2, 1, 3};
+    indices = {0, 1, 2, 2, 1, 3};
+}
+
+void VKColorApp::createMeshBuffers()
+{
     indicesCount = (uint32_t)indices.size();
 
     // temp vertex buffer
@@ -981,6 +985,7 @@ void VKColorApp::initVulkan()
     createGraphicsPipeline();
     createFramebuffers();
     createCommandPool();
+    fillVertexData();
     createMeshBuffers();
     createCommandBuffer();
     createSyncObjects();

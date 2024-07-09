@@ -13,7 +13,7 @@ class VKLineApp : public VKColorApp
         virtual void cleanupSwapChain() override;
         virtual void reset(ANativeWindow *newWindow, AAssetManager *newManager) override;
     protected:
-        virtual void createMeshBuffers() override;
+        virtual void fillVertexData() override;
         virtual void createGraphicsPipeline() override;
         virtual void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) override;
 };
